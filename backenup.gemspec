@@ -10,5 +10,7 @@ Gem::Specification.new do |s|
   s.email       = 'constructible.truth@gmail.com'
   s.files       = ["lib/backenup.rb"]
   s.homepage    = 'https://briandamaged.org/'
+  
+  s.add_dependency "grit", ">= 2.5.0"
 end
 
