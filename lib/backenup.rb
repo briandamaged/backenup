@@ -45,20 +45,25 @@ module Backenup
     end
 
 
-    def commit(message = nil)
-      if message.nil?
-        files = self.ls
-        if files.any?
-          message = "Storage:\n#{files.map{|f| '  ' + f}.join("\n") }"
-        else
-          message = "[No files in storage]"
-        end
-      end
-      message = self.ls.join("\n") if message.nil?
+    def commit(message = nil, timeout = 600)
+      message = default_message if message.nil?
       
       Dir.chdir self.base_path do
-        @repo.add "."             # Add all new / modified files
-        @repo.commit_all message  # This handles any file that was deleted
+        @repo.git.timeout_after timeout do
+          @repo.add "."             # Add all new / modified files
+          @repo.commit_all message  # This handles any file that was deleted
+        end
+      end
+
+    end
+    
+    
+    def default_message
+      files = self.ls
+      if files.any?
+        "Storage:\n#{files.map{|f| '  ' + f}.join("\n") }"
+      else
+        "[No files in storage]"
       end
     end
     
