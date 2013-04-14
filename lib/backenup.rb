@@ -5,19 +5,13 @@ require 'fileutils'
 
 module Backenup
 
-  class Store
+  class Storage
     attr_reader :base_path
     
     def initialize(base_path)
       @base_path = File.absolute_path(base_path)
       
-      if File.exists? base_path
-        @repo = Grit::Repo.new(base_path)
-      else
-        @repo = Grit::Repo.init(base_path)
-        Dir.mkdir self.storage_path
-      end
-      
+      @repo = File.exists?(base_path) ? Grit::Repo.new(base_path) : Grit::Repo.init(base_path)
     end
     
     def storage_path
@@ -26,6 +20,7 @@ module Backenup
     
     # Convenient way to see the contents of the storage
     def ls(path = ".")
+      make_storage_path_exist
       Dir.entries(File.join(self.storage_path, path)).reject{|f| [".", ".."].include? f}
     end
     
@@ -37,6 +32,7 @@ module Backenup
       
       dest = File.join(self.storage_path, dest)
       
+      make_storage_path_exist
       FileUtils.cp_r src, dest
     end
 
@@ -49,11 +45,28 @@ module Backenup
     end
 
 
-    def commit(message = "Hello")
+    def commit(message = nil)
+      if message.nil?
+        files = self.ls
+        if files.any?
+          message = "Storage:\n#{files.map{|f| '  ' + f}.join("\n") }"
+        else
+          message = "[No files in storage]"
+        end
+      end
+      message = self.ls.join("\n") if message.nil?
+      
       Dir.chdir self.base_path do
         @repo.add "."             # Add all new / modified files
         @repo.commit_all message  # This handles any file that was deleted
       end
+    end
+    
+    
+    private
+    
+    def make_storage_path_exist
+      Dir.mkdir self.storage_path unless File.exists?(self.storage_path)
     end
     
   end
