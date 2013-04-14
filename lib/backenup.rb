@@ -28,16 +28,34 @@ module Backenup
     def ls(path = ".")
       Dir.entries(File.join(self.storage_path, path)).reject{|f| [".", ".."].include? f}
     end
+    
+    
+    def cp(src, dest = nil)
+      if dest.nil?
+        dest = File.basename(src)
+      end
+      
+      dest = File.join(self.storage_path, dest)
+      
+      FileUtils.cp_r src, dest
+    end
 
 
     # Clears the current contents of the storage.
     def clear
       self.ls.each do |f|
-        puts File.join(self.storage_path, f)
+        FileUtils.rm_rf File.join(self.storage_path, f)
+      end
+    end
+
+
+    def commit(message = "Hello")
+      Dir.chdir self.base_path do
+        @repo.add "."             # Add all new / modified files
+        @repo.commit_all message  # This handles any file that was deleted
       end
     end
     
-        
   end
   
 end

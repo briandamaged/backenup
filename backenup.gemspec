@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name        = 'backenup'
-  s.version     = '0.0.2'
+  s.version     = '0.0.3'
   s.date        = '2013-04-11'
   s.summary     = "File backups via Git"
   s.description = "File backups via Git"
