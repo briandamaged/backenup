@@ -45,13 +45,16 @@ module Backenup
     end
 
 
-    def commit(message = nil, timeout = 600)
+    def commit(message = nil)
       message = default_message if message.nil?
       
       Dir.chdir self.base_path do
-        @repo.git.timeout_after timeout do
-          @repo.add "."             # Add all new / modified files
-          @repo.commit_all message  # This handles any file that was deleted
+        
+        with_timeout 0 do
+          with_max_size 0 do
+            @repo.add "."             # Add all new / modified files
+            @repo.commit_all message  # This handles any file that was deleted
+          end
         end
       end
 
@@ -67,12 +70,38 @@ module Backenup
       end
     end
     
+
+    
     
     private
     
     def make_storage_path_exist
       Dir.mkdir self.storage_path unless File.exists?(self.storage_path)
     end
+    
+    
+    def with_timeout(seconds)
+      previous = Grit::Git.git_timeout
+      begin
+        Grit::Git.git_timeout = seconds
+        yield
+      ensure
+        Grit::Git.git_timeout = previous
+      end
+    end
+    
+    
+    def with_max_size(size)
+      previous = Grit::Git.git_max_size
+      begin
+        Grit::Git.git_max_size = size
+        yield
+      ensure
+        Grit::Git.git_max_size = previous
+      end
+    end
+    
+    
     
   end
   
