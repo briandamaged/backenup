@@ -35,6 +35,11 @@ module Backenup
       make_storage_path_exist
       FileUtils.cp_r src, dest
     end
+    
+    
+    def rm(dest)
+      FileUtils.rm_rf File.join(self.storage_path, dest)
+    end
 
 
     # Clears the current contents of the storage.
